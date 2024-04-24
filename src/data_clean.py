@@ -80,8 +80,8 @@ def clean_async(df):
         pool.close()
         pool.join()
     try:
-        data = np.array(new).flatten()
-        print(data)
+
+        data = pd.DataFrame(new, columns=['Title', 'Poem', 'Poet', 'Tags'])
         with open(r'obj/cleaned_data.obj', 'wb') as f:     
             pickle.dump(data,f)
         f.close()
@@ -99,6 +99,7 @@ def clean():
                 LOGGER.debug('Reading file...')
                 csv = pd.read_csv(file)
                 csv_read = True
+            file.close()
 
             with open(r'obj/csv.obj', 'wb') as f:     
                 pickle.dump(csv,f)
@@ -108,9 +109,8 @@ def clean():
                 csv = pickle.load(f)
             f.close()
 
-        data = clean(csv)
+        data = clean_async(csv)
         LOGGER.debug('File has been successfully cleaned...')
-        file.close()
 
     except Exception:
         raise Exception("Couldn't clean")
