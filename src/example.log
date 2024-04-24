@@ -1,0 +1,14 @@
+DEBUG:__main__:Starting...
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+DEBUG:__main__:Starting...
+INFO:chromadb.telemetry.product.posthog:Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+DEBUG:chromadb.config:Starting component System
+DEBUG:chromadb.config:Starting component Posthog
+DEBUG:chromadb.config:Starting component OpenTelemetryClient
+DEBUG:chromadb.config:Starting component SimpleAssignmentPolicy
+DEBUG:chromadb.config:Starting component SqliteDB
+DEBUG:chromadb.config:Starting component QuotaEnforcer
+DEBUG:chromadb.config:Starting component LocalSegmentManager
+DEBUG:chromadb.config:Starting component SegmentAPI
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): us-api.i.posthog.com:443
+DEBUG:urllib3.connectionpool:https://us-api.i.posthog.com:443 "POST /batch/ HTTP/1.1" 200 None
