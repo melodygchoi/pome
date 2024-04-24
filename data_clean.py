@@ -96,29 +96,15 @@ def clean_attr(tuple):
 def clean(df):
     # spawn 10 threads to run this concurrently
     with Pool() as pool:
-        new = []
         result = pool.map_async(clean_attr, df.iterrows(), chunksize=2000)
-        new.append(result.get())
-    return new
-
-# Read the CSV file into a pandas DataFrame
-def main():
-    logger.debug('Starting...')
-
-    with open('PoetryFoundationData.csv') as file:
-        reader = csv.reader(file)
-        logger.debug('Opened file...')
-
-        df = pd.read_csv(file)
-        data = np.array(clean(df)).flatten()
-        logger.debug('File has been successfully cleaned...')
-
+        new = result.get()
+        data = np.array(new).flatten()
         print(data)
-    file.close()
-
-    # collection = chroma_client.create_collection(name="poems", embedding_function=EmbedPoems)
-    # collection.add(documents=poems.tolist())
-
-if __name__ == '__main__':
-    main()
-    # freeze_support()
+        pool.close()
+        pool.join()
+    try:
+        with open(r'cleaned_data.obj', 'wb') as f:     
+            pickle.dump(data,f)
+        f.close()
+    except Exception as err:
+        raise Exception("Pickle failed")
