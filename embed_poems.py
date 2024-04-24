@@ -1,9 +1,13 @@
+"""
+Returns the embedding data of a poem, given a pandas.DataFrame row.
+
+"""
+
 from openai import OpenAI
 from chromadb import EmbeddingFunction, Embeddings
-from classifier.custom_features import *
+from custom_features import *
 
 EMBEDDING_MODEL = "text-embedding-3-small"
-
 
 class EmbedPoems(EmbeddingFunction):
     def __call__(self, input: str) -> Embeddings:
@@ -14,7 +18,7 @@ class EmbedPoems(EmbeddingFunction):
 
         # append custom features to this embedding
 
-        embedding.data[0].embedding.append()
+        embedding.data[0].embedding.append(IJFGJDKJA)
 
         return embedding.data.embed
         

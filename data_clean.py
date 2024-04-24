@@ -1,42 +1,17 @@
-from openai import OpenAI
-from chromadb import Documents, EmbeddingFunction, Embeddings
 from multiprocessing import Pool
-
-# from classifier.embed_poems import EmbedPoems
 
 import pandas as pd
 import numpy as np
 import logging
 import pickle
-import chromadb
-import csv
 import pickle
-# import chromadb.utils.embedding_functions as embedding_functions
 
-# from utils.embeddings_utils import (
-#     get_embedding,
-#     distances_from_embeddings,
-#     tsne_components_from_embeddings,
-#     chart_from_components,
-#     indices_of_nearest_neighbors_from_distances,
-# )
-
-# with open("PoetryFoundationData.csv") as csvfile:
-#     reader = csv.reader(csvfile, quoting=csv.QUOTE_NONNUMERIC) # change contents to floats
-#     for row in reader: # each row is a list
-#         results.append(row)
-
-# openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-#                 api_key="YOUR_API_KEY",
-#                 model_name=EMBEDDING_MODEL
-#             )
-
-
-# chroma_client = chromadb.Client()
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
-def rid_quotes(string) -> str:
+
+# Gets rid of beginning, end quotes/apostrophes.
+def rid_quotes(string) -> str:  
     try:
         # manual getting rid of quotations
         if string[0] == "'" or string[0] == '"':
@@ -47,9 +22,10 @@ def rid_quotes(string) -> str:
     except Exception as err:
         raise Exception(f"Unexpected {err=} at while removing quotes")
 
+
+# Strips \n from beginning, end of string.
 def strip(string) -> str:
     try:
-        # print(string)
         # manual lstrip
         i = 0
         while len(string) > 0:
@@ -57,7 +33,9 @@ def strip(string) -> str:
                 string = string[2:]
             else:
                 break
+        
         string = str.strip(string)
+
         # manual rstrip
         i = len(string) - 1
         while i > 0:
@@ -71,7 +49,8 @@ def strip(string) -> str:
     except Exception as err:
         raise Exception(f"Unexpected {err=} while stripping")
 
-# part of clean: clean beginnings and ends of string
+
+# Clean beginnings and ends of string.
 def clean_attr(tuple):
     row = tuple[1]
 
@@ -92,19 +71,47 @@ def clean_attr(tuple):
     except Exception as err:
         raise err
 
-# Clean up data in df; data is a df column
-def clean(df):
-    # spawn 10 threads to run this concurrently
+
+# Asynchronously clean up data in a df.
+# Uses multiprocessing with chunksize = 1000.
+def clean_async(df):
     with Pool() as pool:
-        result = pool.map_async(clean_attr, df.iterrows(), chunksize=2000)
+        result = pool.map_async(clean_attr, df.iterrows(), chunksize=1000)
         new = result.get()
-        data = np.array(new).flatten()
-        print(data)
         pool.close()
         pool.join()
     try:
+        data = np.array(new).flatten()
+        print(data)
         with open(r'cleaned_data.obj', 'wb') as f:     
             pickle.dump(data,f)
         f.close()
     except Exception as err:
         raise Exception("Pickle failed")
+
+
+# Reads and cleans up the string data stored in the given CSV.
+def clean():
+    csv_read = True
+    
+    try:
+        if not csv_read:
+            with open('PoetryFoundationData.csv') as file:
+                LOGGER.debug('Reading file...')
+                csv = pd.read_csv(file)
+                csv_read = True
+
+            with open(r'csv.obj', 'wb') as f:     
+                pickle.dump(csv,f)
+            f.close()
+        else:
+            with open(r'csv.obj', 'rb') as f:     
+                csv = pickle.load(f)
+            f.close()
+
+        data = clean(csv)
+        LOGGER.debug('File has been successfully cleaned...')
+        file.close()
+
+    except Exception:
+        raise Exception("Couldn't clean")

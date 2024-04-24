@@ -1,48 +1,46 @@
-from openai import OpenAI
-from chromadb import Documents, EmbeddingFunction, Embeddings
-from multiprocessing import Pool
 from data_clean import *
+from embed_poems import *
+from multiprocessing import Pool
 
-import pandas as pd
-import numpy as np
-import logging
-import pickle
 import chromadb
-import csv
+import logging
+import pandas as pd
 import pickle
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
+reclean = False
 
-reclean = True
 
-# Read the CSV file into a pandas DataFrame
+# Returns a clean dataframe of the poetry data.
+def get_df() -> pd.DataFrame:
+    # If data needs to be re-cleaned, re-clean data
+    if reclean:
+        clean()
+
+    # If cleaned data exists, set data = existing clean data
+    with open(r"cleaned_data.obj", "rb") as f:
+        data = pickle.load(f)
+    f.close()
+        
+    return pd.DataFrame(data, columns=['Title', 'Poem', 'Poet', 'Tags'])
+
+
+# Gets embeddings of poems.
 def main():
     logger.debug('Starting...')
 
-    with open(r"cleaned_data.obj", "rb") as f:
-        data = pickle.load(f)
+    client = chromadb.PersistentClient(path="/chroma")
+    collection = client.create_collection(name="poems", embedding_function=EmbedPoems)
 
-    if reclean == True or data == None:
-        print("lame")
-        try:
-            with open('PoetryFoundationData.csv') as file:
-                reader = csv.reader(file)
-                logger.debug('Opened file...')
+    # Get cleaned dataframe of poetry data.
+    df = get_df()
+   
+    # Add dataframe to chroma collection.
+    # This will create and store embeddings using our custom function.
+    collection.add(documents=df)
 
-                df = pd.read_csv(file)
-                data = clean(df)
-                logger.debug('File has been successfully cleaned...')
-            file.close()
-        except Exception:
-            raise Exception("Couldn't clean")
-
-    df = pd.DataFrame(data).T
-    print(df.shape)
-
-
-    # collection = chroma_client.create_collection(name="poems", embedding_function=EmbedPoems)
-    # collection.add(documents=poems.tolist())
 
 if __name__ == '__main__':
     main()
