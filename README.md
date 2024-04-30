@@ -1,8 +1,8 @@
 # 🍎	Pome
 **_Classifying and recommending poems using custom multi-feature embeddings_**
 
-Melody Choi
-Advised by Brian W. Kernighan
+Melody Choi // 
+Advised by Brian W. Kernighan //
 Spring 2024 Independent Work
 
 
@@ -26,7 +26,7 @@ Clusters can be visualized as well:
 
 ## 💡	Installation
 
-- Run the following commands:
+To install, run the following commands:
   ```
   $ git clone https://github.com/melodygchoi/pome
   $ cd pome
@@ -37,11 +37,11 @@ Clusters can be visualized as well:
 ## 💻	Using HetDetect
 To run HetDetect, call `python run.py [rows] [k] [option] [x]`.
 
-• `int rows`: Number of rows of the dataframe the user wants to create embeddings of, i.e. the number of poems the user would like embedded and clustered.
-• `int k`: Number of cluster centers desired for k-means clustering.
-• `str option`: Either of “cluster”, “recommend”, or “nearest”, depending on which action the user would like for Pome to perform.
+- `int rows`: Number of rows of the dataframe the user wants to create embeddings of, i.e. the number of poems the user would like embedded and clustered.
+- `int k`: Number of cluster centers desired for k-means clustering.
+- `str option`: Either of “cluster”, “recommend”, or “nearest”, depending on which action the user would like for Pome to perform.
   1. cluster embeds `rows` number of poems and assigns cluster center labels to each poem.
   2. recommend embeds a poem to form recommendations off of, assigns a cluster center label to the poem, and returns the rest of the cluster as a set of recommendations.
   3. nearest embeds a poem to form recommendations off of and uses Pinecone’s vector search to find `x` number of closest embeddings using cosine similarity.
-• `int x`: Number of recommended poems desired. This value only matters when option is set to nearest.
+- `int x`: Number of recommended poems desired. This value only matters when option is set to nearest.
 
