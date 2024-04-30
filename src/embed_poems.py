@@ -98,16 +98,13 @@ def embed_poems(df: pd.DataFrame):
         logger.debug("yuh")
 
         for tuple in df.iterrows():
-            logger.debug("mmmmmmmmm")
             embedding = em_idx.query(
                 namespace="ns1", 
                 top_k=1, 
                 id=str(tuple[0]), 
                 include_values=True
                 )
-            logger.debug("okie")
             if not embedding.matches:
-                logger.debug("NAUrrrrr")
                 embedding = embed(tuple)
                 # This may take a few minutes
                 logger.debug("Upserting embedding into index.")

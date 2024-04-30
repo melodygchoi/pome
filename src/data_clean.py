@@ -79,7 +79,6 @@ def clean_async(df):
         pool.close()
         pool.join()
     try:
-
         data = pd.DataFrame(new, columns=['Title', 'Poem', 'Poet', 'Tags'])
         with open(r'obj/cleaned_data.obj', 'wb') as f:     
             pickle.dump(data,f)

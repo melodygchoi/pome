@@ -33,7 +33,11 @@ def get_df() -> pd.DataFrame:
 
 def cluster(embeddings, k):
     points = np.array(embeddings)
-    kmeans = KMeans(n_clusters=k, random_state=0, n_init="auto").fit(points)
+    kmeans = KMeans(n_clusters=k, 
+                    init="k-means++",
+                    random_state=0, 
+                    n_init="auto"
+                    ).fit(points)
     labels = kmeans.labels_
 
     tsne = TSNE(n_components=2, perplexity=15, random_state=0, init="random", learning_rate=200)
@@ -51,7 +55,18 @@ def cluster(embeddings, k):
                                       "turquoise",
                                       "lime",
                                       "saddlebrown",
-                                      "hotpink"]):
+                                      "hotpink",
+                                    #   "darkblue",
+                                    #   "darkgrey",
+                                    #   "maroon",
+                                    #   "skyblue",
+                                    #   "darkolivegreen",
+                                    #   "thistle",
+                                    #   "magenta",
+                                    #   "lightpink",
+                                    #   "lightgreen",
+                                    # "darkslategrey"
+                                    ]):
         xs = np.array(x)[labels == category]
         ys = np.array(y)[labels == category]
         
@@ -63,14 +78,87 @@ def cluster(embeddings, k):
         plt.scatter(avg_x, avg_y, marker="x", color=color, s=100)
     plt.title("Clusters identified from poems")
 
-    plt.savefig('plot.png', dpi=300, bbox_inches='tight')
+    plt.savefig('plot10.png', dpi=300, bbox_inches='tight')
 
-    return labels
+    return kmeans, labels
+
+
+# Data cleaner for input poem
+def clean_input(df_row):
+    title = repr(df_row.Title)
+    poem = repr(df_row.Poem)
+
+    try:
+        # manual getting rid of quotations
+        title = rid_quotes(title)
+        poem = rid_quotes(poem)
+        
+        # manual strip
+        title = strip(title)
+        poem = strip(poem)
+        df = pd.DataFrame([[title, poem, df_row.Poet, df_row.Tags]])
+        return df
+    
+    except Exception as err:
+        raise err
+
+
+# Return the cluster that the poem would belong in.
+# Uses k-means clustering.
+def predict(df, kmeans, input_embedding):
+    label = kmeans.predict(np.array(input_embedding).reshape(1, -1))
+    cluster = []
+
+    for row in df.iterrows():
+        if row[1].Cluster == label:
+            cluster.append(row[1])
+
+    # cluster = df.loc[df['Cluster'] == label]
+    print(f"RECOMMENDATIONS ({len(cluster)} total):")
+    for poem in cluster:
+        print(f'"{poem.Title}" by {poem.Poet}')
+
+
+# Return the k nearest poems via Pinecone query.
+# Uses cosine distance.
+def knearest(df, number, input_embedding):
+    try:
+        index = pc.Index("embeddings")
+
+        neighbors = index.query(
+                namespace="ns1", 
+                top_k=number, 
+                vector=input_embedding, 
+                include_values=True
+                )
+        
+        print(f"TOP {number} CLOSEST POEMS (COSINE SIMILARITY):")
+        for match in neighbors.matches:
+            logger.debug(match.get("id"))
+            score = match.get("score")
+            poem = df.iloc[int(match.get("id")) - 1]
+            print(f'- "{poem.Title}" by {poem.Poet} (Similarity: {round(score * 100, 2)}%)')
+
+    except Exception as err:
+        raise err
+
+# Embedding function for one single df row.
+def embed(df):
+    openai_embed = CLIENT.embeddings.create(input=df.Poem, 
+                                            model=EMBEDDING_MODEL, 
+                                            dimensions=256,
+                                            encoding_format="float")
+    embedding = openai_embed.data[0].embedding
+    custom_features = get_custom_features(df)
+    for feature in custom_features:
+        embedding.append(feature)
+    return embedding
 
 
 # Gets embeddings of poems.
-def main(rows):
+def embed_and_cluster(rows, k, recommend, option, number):
     try:
+        ### CLASSIFICATION ###
         start = time.time()
         logger.debug('Starting...')
 
@@ -82,19 +170,45 @@ def main(rows):
         embeddings = embed_poems(df)
         
         # Get embeddings from Pinecone index
-        labels = cluster(embeddings, 10)
+        kmeans, labels = cluster(embeddings, k)
         df['Cluster'] = labels
 
-        df.to_csv("clusters.csv", sep=',', index=False, encoding='utf-8')
 
-        end = time.time()
-        print("It took", end-start, "seconds to get embeddings and cluster them!")
+        ### RECOMMENDATION ####
+        if recommend: 
+            test_poem = get_df().iloc[600]
+            input_embedding = embed(test_poem)
+            print("----------------------------------------------------------------------------------------------------------")
+            if option == "recommend":
+                print(f'Recommending poems based on input poem "{test_poem.Title}" ({test_poem.Poet})...')
+                print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *")
+                predict(df, kmeans, input_embedding)
+            elif option == "nearest":
+                
+                print(f'Finding {number} nearest neighbor poems based on input poem "{test_poem.Title}" ({test_poem.Poet})...')
+                print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *")
+
+                knearest(df, number, input_embedding)
+            print("----------------------------------------------------------------------------------------------------------")
+
+        
+        return embeddings
 
     except TypeError as err:
         logger.error(err)
 
+def main(rows, k, option, number):
+    if option == "cluster":
+        embeddings = embed_and_cluster(rows, k, recommend=False, option=option, number=None)
+    elif option == "recommend" or option == "nearest":
+        embeddings = embed_and_cluster(rows, k, recommend=True, option=option, number=number)
 
 if __name__ == '__main__':
     rows = int(sys.argv[1])
-    main(rows)
+    k = int(sys.argv[2])
+    option = sys.argv[3]
+    number = int(sys.argv[4]) 
+
+    main(rows, k, option, number)
+
     # freeze_support()
