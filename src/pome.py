@@ -121,18 +121,18 @@ def predict(df, kmeans, input_embedding):
 
 # Return the k nearest poems via Pinecone query.
 # Uses cosine distance.
-def knearest(df, number, input_embedding):
+def knearest(df, x, input_embedding):
     try:
         index = pc.Index("embeddings")
 
         neighbors = index.query(
                 namespace="ns1", 
-                top_k=number, 
+                top_k=x, 
                 vector=input_embedding, 
                 include_values=True
                 )
         
-        print(f"TOP {number} CLOSEST POEMS (COSINE SIMILARITY):")
+        print(f"TOP {x} CLOSEST POEMS (COSINE SIMILARITY):")
         for match in neighbors.matches:
             logger.debug(match.get("id"))
             score = match.get("score")
@@ -156,7 +156,7 @@ def embed_one(df):
 
 
 # Gets embeddings of poems.
-def pome(rows, k, recommend, option, number):
+def pome(rows, k, recommend, option, x):
     try:
         ### CLASSIFICATION ###
         start = time.time()
@@ -185,10 +185,10 @@ def pome(rows, k, recommend, option, number):
                 predict(df, kmeans, input_embedding)
             elif option == "nearest":
                 
-                print(f'Finding {number} nearest neighbor poems based on input poem "{test_poem.Title}" ({test_poem.Poet})...')
+                print(f'Finding {x} nearest neighbor poems based on input poem "{test_poem.Title}" ({test_poem.Poet})...')
                 print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *")
 
-                knearest(df, number, input_embedding)
+                knearest(df, x, input_embedding)
             print("----------------------------------------------------------------------------------------------------------")
 
         
