@@ -143,7 +143,7 @@ def knearest(df, number, input_embedding):
         raise err
 
 # Embedding function for one single df row.
-def embed(df):
+def embed_one(df):
     openai_embed = CLIENT.embeddings.create(input=df.Poem, 
                                             model=EMBEDDING_MODEL, 
                                             dimensions=256,
@@ -156,7 +156,7 @@ def embed(df):
 
 
 # Gets embeddings of poems.
-def embed_and_cluster(rows, k, recommend, option, number):
+def pome(rows, k, recommend, option, number):
     try:
         ### CLASSIFICATION ###
         start = time.time()
@@ -177,7 +177,7 @@ def embed_and_cluster(rows, k, recommend, option, number):
         ### RECOMMENDATION ####
         if recommend: 
             test_poem = get_df().iloc[600]
-            input_embedding = embed(test_poem)
+            input_embedding = embed_one(test_poem)
             print("----------------------------------------------------------------------------------------------------------")
             if option == "recommend":
                 print(f'Recommending poems based on input poem "{test_poem.Title}" ({test_poem.Poet})...')
@@ -197,20 +197,3 @@ def embed_and_cluster(rows, k, recommend, option, number):
     except TypeError as err:
         logger.error(err)
 
-def main(rows, k, option, number):
-    if option == "cluster":
-        embeddings = embed_and_cluster(rows, k, recommend=False, option=option, number=None)
-    elif option == "recommend" or option == "nearest":
-        embeddings = embed_and_cluster(rows, k, recommend=True, option=option, number=number)
-    else:
-        print("Invalid option entered. \nPlease enter an option out of the three: \n - 'cluster', 'recommend' or 'nearest")
-
-if __name__ == '__main__':
-    rows = int(sys.argv[1])
-    k = int(sys.argv[2])
-    option = sys.argv[3]
-    number = int(sys.argv[4]) 
-
-    main(rows, k, option, number)
-
-    # freeze_support()
