@@ -34,8 +34,8 @@ To install, run the following commands:
   ```
 
 
-## 💻	Using HetDetect
-To run HetDetect, call `python run.py [rows] [k] [option] [x]`.
+## 💻	Using Pome
+To run Pome, call `python run.py [rows] [k] [option] [x]`.
 
 - `int rows`: Number of rows of the dataframe the user wants to create embeddings of, i.e. the number of poems the user would like embedded and clustered.
 - `int k`: Number of cluster centers desired for k-means clustering.
