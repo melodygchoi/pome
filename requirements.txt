@@ -155,6 +155,6 @@ watchfiles==0.21.0
 weasel @ file:///home/conda/feedstock_root/build_artifacts/weasel_1699295455892/work
 websocket-client==1.7.0
 websockets==12.0
-Werkzeug==3.0.2
+Werkzeug==3.0.3
 wrapt==1.16.0
 zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1695255097490/work
